@@ -1,1 +1,5 @@
-//for socket stuff
+package betareduce
+
+func send() {}
+
+func recv() {}
