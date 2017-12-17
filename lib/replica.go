@@ -1,7 +1,7 @@
 package betareduce
 
-func Init() {
-
+func Init(address string) {
+	println("in betareduce:Init")
 }
 
 func Run() {
