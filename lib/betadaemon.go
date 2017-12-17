@@ -1,6 +1,7 @@
-package main
+package betareduce
 
 import (
+	"betareduce/lib/store"
 	"os"
 	"strconv"
 
@@ -17,9 +18,11 @@ func main() {
 
 		switch c {
 		case 'p':
-			port, _ := strconv.Atoi(OptArg)
+			port, _ = strconv.Atoi(OptArg)
 		default:
 			os.Exit(1)
 		}
 	}
+
+	store.Init(port)
 }
