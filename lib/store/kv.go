@@ -20,7 +20,7 @@ var EKEYNF = keynotfound{s: "Key not found"}
 type entry struct {
 	atime time.Time
 	mtime time.Time
-	value string
+	value Value
 }
 
 // ========================================================================== //
@@ -35,7 +35,7 @@ func NewKVS() KVS {
 	return KVS{store: make(map[string]entry)}
 }
 
-func (kv *KVS) Put(key string, value string) {
+func (kv *KVS) Put(key string, value Value) {
 	t := time.Now()
 
 	if _, ok := kv.store[key]; ok {
@@ -53,10 +53,10 @@ func (kv *KVS) Put(key string, value string) {
 	}
 }
 
-func (kv *KVS) Get(key string) (string, error) {
+func (kv *KVS) Get(key string) (Value, error) {
 	if _, ok := kv.store[key]; ok {
 		return kv.store[key].value, nil
 	}
 
-	return "", EKEYNF
+	return nil, EKEYNF
 }

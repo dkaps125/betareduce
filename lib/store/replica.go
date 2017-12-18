@@ -30,19 +30,19 @@ func Run() {
 // ========================================================================== //
 //Key value function wrappers
 
-func put(key string, value string) {
+func put(key string, value Value) {
 	in()
 	store.Put(key, value)
 	out()
 }
 
-func get(key string) (string, error) {
+func get(key string) (Value, error) {
 	in()
 	s, e := store.Get(key)
 	out()
 
 	if e == nil {
-		return "", EKEYNF
+		return nil, EKEYNF
 	}
 
 	return s, nil
