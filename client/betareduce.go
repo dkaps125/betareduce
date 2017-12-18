@@ -1,10 +1,10 @@
-package main
+package client
 
 import (
-	"betareduce/lib"
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	. "github.com/mattn/go-getopt"
@@ -13,7 +13,7 @@ import (
 // add command interpreter
 
 func main() {
-	var c int
+	var c, port int
 	var address string
 
 	for {
@@ -23,13 +23,15 @@ func main() {
 		switch c {
 		case 'a':
 			address = OptArg
+		case 'p':
+			port, _ = strconv.Atoi(OptArg)
 		default:
 			println("usage: betareduce.go [-a address]", c)
 			os.Exit(1)
 		}
-
-		betareduce.Init(address)
 	}
+
+	// connect to server here
 
 	reader := bufio.NewReader(os.Stdin)
 
