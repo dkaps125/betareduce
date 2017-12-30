@@ -78,11 +78,6 @@ func Init(port int, _debug bool) {
 	go repLoop()
 }
 
-// TODO: do we actually need this?
-func Run() {
-
-}
-
 // ========================================================================== //
 // Key value function wrappers
 
