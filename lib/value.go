@@ -1,4 +1,4 @@
-package store
+package betareduce
 
 type Value interface {
 	serialize() string

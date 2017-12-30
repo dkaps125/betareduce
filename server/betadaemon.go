@@ -1,7 +1,7 @@
-package betareduce
+package main
 
 import (
-	"betareduce/lib/store"
+	"betareduce/lib"
 	"os"
 	"strconv"
 
@@ -10,19 +10,25 @@ import (
 
 func main() {
 	var c, port int
+	debug := false
+
+	// uh here's a default port
+	port = 8300
 
 	for {
-		if c = Getopt("p:"); c == EOF {
+		if c = Getopt("dp:"); c == EOF {
 			break
 		}
 
 		switch c {
 		case 'p':
 			port, _ = strconv.Atoi(OptArg)
+		case 'd':
+			debug = true
 		default:
 			os.Exit(1)
 		}
 	}
 
-	store.Init(port)
+	betareduce.Init(port, debug)
 }

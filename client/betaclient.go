@@ -1,10 +1,11 @@
-package client
+// leave this as main
+package main
 
 import (
+	"betareduce/lib"
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	. "github.com/mattn/go-getopt"
@@ -13,8 +14,10 @@ import (
 // add command interpreter
 
 func main() {
-	var c, port int
+	var c int
 	var address string
+
+	address = "127.0.0.1:8300"
 
 	for {
 		if c = Getopt("a:"); c == EOF {
@@ -23,8 +26,6 @@ func main() {
 		switch c {
 		case 'a':
 			address = OptArg
-		case 'p':
-			port, _ = strconv.Atoi(OptArg)
 		default:
 			println("usage: betareduce.go [-a address]", c)
 			os.Exit(1)
@@ -34,6 +35,9 @@ func main() {
 	// connect to server here
 
 	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Println("Connecting to tcp://" + address)
+	betareduce.ConnectToReplica(address)
 
 	for {
 		fmt.Print("β> ")
