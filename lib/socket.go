@@ -11,6 +11,7 @@ const (
 	MSG_CONNECT
 	MSG_PUT
 	MSG_GET
+	MSG_DELETE
 )
 
 func REQ_PORT(x int) int { return x }
@@ -20,6 +21,7 @@ var msgtypes = map[int]string{
 	MSG_CONNECT: "MSG_CONNECT",
 	MSG_PUT:     "MSG_PUT",
 	MSG_GET:     "MSG_GET",
+	MSG_DELETE:  "MSG_DELETE",
 }
 
 type Msg struct {
@@ -34,7 +36,12 @@ func InitServer() {
 	subsock.SetSubscribe("")
 }
 
-func ConnectToReplicaReqsock(r Replica) {
+func ConnectToReplicaReqsock(address string, port int) Replica {
+
+	r := Replica{
+		address: address,
+		port:    port,
+	}
 
 	s := fmt.Sprintf("tcp://%s:%d", r.address, REQ_PORT(r.port))
 	p_out("connect to " + s)
@@ -42,6 +49,8 @@ func ConnectToReplicaReqsock(r Replica) {
 	if err := r.reqSock.Connect(s); err != nil {
 		p_err("Error: cannot connect to server %q, %v\n", s, err)
 	}
+
+	return r
 }
 
 func connectToReplicaSubsock(r Replica) {

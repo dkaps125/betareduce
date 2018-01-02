@@ -2,10 +2,11 @@
 package main
 
 import (
-	"betareduce/lib"
+	betareduce "betareduce/lib"
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	. "github.com/mattn/go-getopt"
@@ -16,8 +17,10 @@ import (
 func main() {
 	var c int
 	var address string
+	var port int
 
-	address = "127.0.0.1:8300"
+	address = "127.0.0.1"
+	port = 8300
 
 	for {
 		if c = Getopt("a:"); c == EOF {
@@ -26,6 +29,8 @@ func main() {
 		switch c {
 		case 'a':
 			address = OptArg
+		case 'p':
+			port, _ = strconv.Atoi(OptArg)
 		default:
 			println("usage: betareduce.go [-a address]", c)
 			os.Exit(1)
@@ -36,8 +41,8 @@ func main() {
 
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Println("Connecting to tcp://" + address)
-	betareduce.ConnectToReplica(address)
+	fmt.Println("Connecting to tcp://" + address + ":" + string(port))
+	replica := betareduce.ConnectToReplicaReqsock(address, port)
 
 	for {
 		fmt.Print("β> ")
@@ -49,3 +54,5 @@ func main() {
 		}
 	}
 }
+
+// add functions to send commands to replicas
