@@ -51,11 +51,34 @@ func main() {
 			break
 		}
 
-		// TODO: split on input, switch on msg type, craft Msg based on input
-		outboundMsg := &betareduce.Msg{}
-		replyMsg := betareduce.SendRecv(outboundMsg, &replica)
+		if len(input) == 0 {
+			continue
+		}
 
-		fmt.Println(replyMsg)
+		op := strings.Split(input, " ")
+
+		if len(op) >= 1 {
+			switch op[0] {
+			case "put":
+				outboundMsg := &betareduce.Msg{
+					MsgType: betareduce.MSG_PUT,
+					S:       strings.Join(op[1:], " "),
+				}
+				replyMsg := betareduce.SendRecv(outboundMsg, &replica)
+				fmt.Println(replyMsg)
+				break
+			case "get":
+				outboundMsg := &betareduce.Msg{
+					MsgType: betareduce.MSG_GET,
+					S:       strings.Join(op[1:], " "),
+				}
+				replyMsg := betareduce.SendRecv(outboundMsg, &replica)
+				fmt.Println(replyMsg)
+				break
+			default:
+				fmt.Println("Command not recognized")
+			}
+		}
 
 	}
 }

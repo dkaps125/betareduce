@@ -17,7 +17,7 @@ const (
 func REQ_PORT(x int) int { return x }
 func SUB_PORT(x int) int { return x + 1 }
 
-var msgtypes = map[int]string{
+var Msgtypes = map[int]string{
 	MSG_CONNECT: "MSG_CONNECT",
 	MSG_PUT:     "MSG_PUT",
 	MSG_GET:     "MSG_GET",
@@ -91,6 +91,7 @@ func repLoop() {
 
 // Greg TODO
 func send(sock *zmq.Socket, m *Msg) {
+	fmt.Println("TODO: send msg: " + m.S)
 
 }
 
