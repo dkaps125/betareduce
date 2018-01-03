@@ -37,8 +37,6 @@ func main() {
 		}
 	}
 
-	// connect to server here
-
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Connecting to tcp://" + address + ":" + string(port))
@@ -52,6 +50,13 @@ func main() {
 		if err != nil {
 			break
 		}
+
+		// TODO: split on input, switch on msg type, craft Msg based on input
+		outboundMsg := &betareduce.Msg{}
+		replyMsg := betareduce.SendRecv(outboundMsg, &replica)
+
+		fmt.Println(replyMsg)
+
 	}
 }
 

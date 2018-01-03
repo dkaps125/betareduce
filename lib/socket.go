@@ -25,7 +25,8 @@ var msgtypes = map[int]string{
 }
 
 type Msg struct {
-	S string
+	S       string
+	MsgType int
 	// TODO: put other message info here
 }
 
@@ -81,17 +82,25 @@ func repLoop() {
 	for {
 		p_out("In repLoop")
 
-		msg := recv(pubSock)
+		msg := recv(repSock)
 		// TODO: lock here (on a different lock than recvLoop)
 		p_out("Recv msg %q\n", msg.S)
 		// TODO: unlock here
 	}
 }
 
-func send() {
+// Greg TODO
+func send(sock *zmq.Socket, m *Msg) {
 
 }
 
+// Greg TODO
 func recv(sock *zmq.Socket) *Msg {
 	return nil
+}
+
+// Client code blocking send/recv, perhaps move later
+func SendRecv(m *Msg, r *Replica) *Msg {
+	send(r.reqSock, m)
+	return recv(r.reqSock)
 }
