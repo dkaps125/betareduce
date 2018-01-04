@@ -22,6 +22,7 @@ type Replica struct {
 	port    int
 	reqSock *zmq.Socket
 	isLive  bool
+	pubAddr string
 }
 
 // ========================================================================== //
@@ -55,15 +56,20 @@ func Init(port int, _debug bool) {
 	if err != nil {
 		p_out("skt create err %v\n", err)
 	}
-	s := fmt.Sprintf("tcp://*:%d", SUB_PORT(port))
+
+	s := fmt.Sprintf("tcp://*:%d", PUB_PORT(port))
 	err = pubSock.Bind(s)
+
+	me.pubAddr = s
+
 	if err != nil {
 		p_out("Error binding pub/sub socket %q (%v)\n", s, err)
 	}
-	p_out("pubsub bound to %q\n", s)
+	p_out("pub sock bound to %q\n", s)
 
 	subSock, err = zmq.NewSocket(zmq.SUB)
 	p_dieif(err != nil, "Bad SUB sock, %v\n", err)
+	p_out("sub sock initialized to %q\n", subSock)
 
 	subSock.SetSubscribe("")
 

@@ -1,6 +1,8 @@
 package betareduce
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 
 	zmq "github.com/pebbe/zmq4"
@@ -16,6 +18,7 @@ const (
 
 func REQ_PORT(x int) int { return x }
 func SUB_PORT(x int) int { return x + 1 }
+func PUB_PORT(x int) int { return x + 2 }
 
 var Msgtypes = map[int]string{
 	MSG_CONNECT: "MSG_CONNECT",
@@ -87,6 +90,18 @@ func repLoop() {
 // Greg TODO
 func send(sock *zmq.Socket, m *Msg) {
 	fmt.Println("TODO: send msg: " + m.S)
+	m.From = me.pubAddr
+	s, _ := json.Marshal(m)
+	p_out("SEND %q (%d - %d): seq %d, len %d\n", msgtypes[m.Mtype], m.From, m.To, m.Seqnum, len(s))
+	bytes, err := sock.SendBytes(s, 0)
+	if (err != nil) || (bytes != len(s)) {
+		p_err("SEND error, %d bytes, err: %v\n", bytes, err)
+		return errors.New("SEND error")
+	}
+	sends++
+	msgTypeSends[m.Mtype]++
+	sendBytes += len(s)
+	return nil
 
 }
 
