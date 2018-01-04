@@ -56,3 +56,4 @@ func main() {
 }
 
 // add functions to send commands to replicas
+//TODO: consider adding replica to its own file
