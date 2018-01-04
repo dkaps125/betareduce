@@ -110,15 +110,56 @@ func repLoop() {
 
 		msg := recv(repSock)
 
+		var v Value
+		var err error
+		var m *Msg
+
 		switch msg.MsgType {
 		case MSG_PUT:
 			put(msg.Key, msg.Value)
 			break
 		case MSG_GET:
+			v, err = get(msg.Key)
+
+			if err != nil {
+				m = &Msg{
+					Key:     msg.Key,
+					MsgType: MSG_GET_RESPONSE,
+					Status:  -1,
+				}
+			} else {
+				m = &Msg{
+					Key:     msg.Key,
+					Value:   v,
+					MsgType: MSG_GET_RESPONSE,
+					Status:  0,
+				}
+			}
+
+			send(repSock, m)
 			break
 		case MSG_DELETE:
+			v, err = deleteEntry(msg.Key)
+
+			if err != nil {
+				m = &Msg{
+					Key:     msg.Key,
+					MsgType: MSG_GET_RESPONSE,
+					Status:  -1,
+				}
+			} else {
+				m = &Msg{
+					Key:     msg.Key,
+					Value:   v,
+					MsgType: MSG_GET_RESPONSE,
+					Status:  0,
+				}
+			}
+
+			send(repSock, m)
 			break
 		default:
+			p_out("Received unknown message type")
 			break
 		}
 		p_out("Recv msg %q\n", msg.S)
