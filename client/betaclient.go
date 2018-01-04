@@ -37,8 +37,6 @@ func main() {
 		}
 	}
 
-	// connect to server here
-
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Connecting to tcp://" + address + ":" + string(port))
@@ -52,6 +50,36 @@ func main() {
 		if err != nil {
 			break
 		}
+
+		if len(input) == 0 {
+			continue
+		}
+
+		op := strings.Split(input, " ")
+
+		if len(op) >= 1 {
+			switch op[0] {
+			case "put":
+				outboundMsg := &betareduce.Msg{
+					MsgType: betareduce.MSG_PUT,
+					S:       strings.Join(op[1:], " "),
+				}
+				replyMsg := betareduce.SendRecv(outboundMsg, &replica)
+				fmt.Println(replyMsg)
+				break
+			case "get":
+				outboundMsg := &betareduce.Msg{
+					MsgType: betareduce.MSG_GET,
+					S:       strings.Join(op[1:], " "),
+				}
+				replyMsg := betareduce.SendRecv(outboundMsg, &replica)
+				fmt.Println(replyMsg)
+				break
+			default:
+				fmt.Println("Command not recognized")
+			}
+		}
+
 	}
 }
 
