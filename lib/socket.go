@@ -30,13 +30,6 @@ type Msg struct {
 	// TODO: put other message info here
 }
 
-func InitServer() {
-	subsock, err := zmq.NewSocket(zmq.SUB)
-	p_dieif(err != nil, "Bad SUB sock, %v\n", err)
-
-	subsock.SetSubscribe("")
-}
-
 func ConnectToReplicaReqsock(address string, port int) Replica {
 
 	r := Replica{
@@ -55,6 +48,8 @@ func ConnectToReplicaReqsock(address string, port int) Replica {
 }
 
 func connectToReplicaSubsock(r Replica) {
+	// add some logic for making sure replica is there, listening
+
 	s := fmt.Sprintf("tcp://%s:%d", r.address, SUB_PORT(r.port))
 	p_out("connect to " + s)
 	if err := subSock.Connect(s); err != nil {
@@ -69,7 +64,7 @@ func recvLoop() {
 	p_out("In recvLoop")
 
 	for {
-		msg := recv(pubSock)
+		msg := recv(subSock)
 		// TODO: lock here
 		p_out("Recv msg %q\n", msg.S)
 		// TODO: unlock here

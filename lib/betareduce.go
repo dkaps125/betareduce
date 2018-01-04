@@ -14,6 +14,7 @@ var (
 	me                        *Replica
 
 	debug = false
+	err   error
 )
 
 type Replica struct {
@@ -49,9 +50,8 @@ func Init(port int, _debug bool) {
 	}
 
 	// bind pub/sub
-	ps, err := zmq.NewSocket(zmq.PUB)
+	pubSock, err = zmq.NewSocket(zmq.PUB)
 
-	pubSock = ps
 	if err != nil {
 		p_out("skt create err %v\n", err)
 	}
@@ -61,6 +61,11 @@ func Init(port int, _debug bool) {
 		p_out("Error binding pub/sub socket %q (%v)\n", s, err)
 	}
 	p_out("pubsub bound to %q\n", s)
+
+	subSock, err = zmq.NewSocket(zmq.SUB)
+	p_dieif(err != nil, "Bad SUB sock, %v\n", err)
+
+	subSock.SetSubscribe("")
 
 	// bind req/rep
 	rs, _ := zmq.NewSocket(zmq.REP)
