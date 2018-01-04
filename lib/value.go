@@ -8,13 +8,13 @@ type Value interface {
 // ========================================================================== //
 
 type String struct {
-	value string
+	Value string
 }
 
 func (s String) serialize() []byte {
-	return []byte(s.value)
+	return []byte(s.Value)
 }
 
 func (s String) deserialize(value []byte) Value {
-	return String{value: string(value)}
+	return String{Value: string(value)}
 }

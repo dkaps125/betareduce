@@ -57,12 +57,16 @@ func main() {
 
 		op := strings.Split(input, " ")
 
-		if len(op) >= 1 {
+		if len(op) > 1 {
 			switch op[0] {
 			case "put":
+				if len(op) < 3 {
+					break
+				}
 				outboundMsg := &Msg{
 					MsgType: MSG_PUT,
-					S:       strings.Join(op[1:], " "),
+					Key:     op[1],
+					Value:   String{Value: strings.Join(op[2:], " ")},
 				}
 				replyMsg := replica.SendRecv(outboundMsg)
 				fmt.Println(replyMsg)
@@ -70,6 +74,7 @@ func main() {
 			case "get":
 				outboundMsg := &Msg{
 					MsgType: MSG_GET,
+					Value:   String{Value: strings.Join(op[1:], " ")},
 					S:       strings.Join(op[1:], " "),
 				}
 				replyMsg := replica.SendRecv(outboundMsg)
