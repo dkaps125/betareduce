@@ -14,7 +14,6 @@ var (
 	me                        *Replica
 
 	debug = false
-	err   error
 )
 
 type Replica struct {
@@ -39,6 +38,7 @@ func out() {
 
 // Init initializes a key-value store and binds to a port
 func Init(port int, _debug bool) {
+	var err error
 	store = NewKVS()
 	storeLock = make(chan (int), 1)
 
@@ -51,6 +51,7 @@ func Init(port int, _debug bool) {
 	}
 
 	// bind pub/sub
+
 	pubSock, err = zmq.NewSocket(zmq.PUB)
 
 	if err != nil {
