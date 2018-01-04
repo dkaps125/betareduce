@@ -12,16 +12,22 @@ const (
 	MSG_PUT
 	MSG_GET
 	MSG_DELETE
+	MSG_PUT_RESPONSE
+	MSG_GET_RESPONSE
+	MSG_DELETE_RESPONSE
 )
 
 func REQ_PORT(x int) int { return x }
 func SUB_PORT(x int) int { return x + 1 }
 
 var Msgtypes = map[int]string{
-	MSG_CONNECT: "MSG_CONNECT",
-	MSG_PUT:     "MSG_PUT",
-	MSG_GET:     "MSG_GET",
-	MSG_DELETE:  "MSG_DELETE",
+	MSG_CONNECT:         "MSG_CONNECT",
+	MSG_PUT:             "MSG_PUT",
+	MSG_PUT_RESPONSE:    "MSG_PUT_RESPONSE",
+	MSG_GET:             "MSG_GET",
+	MSG_GET_RESPONSE:    "MSG_GET_RESPONSE",
+	MSG_DELETE:          "MSG_DELETE",
+	MSG_DELETE_RESPONSE: "MSG_DELETE_RESPONSE",
 }
 
 type Msg struct {
