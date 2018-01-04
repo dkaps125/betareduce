@@ -68,9 +68,7 @@ func Init(port int, _debug bool) {
 	subSock.SetSubscribe("")
 
 	// bind req/rep
-	rs, _ := zmq.NewSocket(zmq.REP)
-
-	repSock = rs
+	repSock, err = zmq.NewSocket(zmq.REP)
 
 	s = fmt.Sprintf("tcp://*:%d", REQ_PORT(port))
 	if err := repSock.Bind(s); err != nil {
@@ -81,6 +79,43 @@ func Init(port int, _debug bool) {
 
 	go recvLoop()
 	go repLoop()
+}
+
+// ========================================================================== //
+
+// Wait for pubsub data (from other betareduce servers )
+func recvLoop() {
+
+	// TODO: connect to other replicas here
+	p_out("In recvLoop")
+
+	for {
+		msg := recv(subSock)
+		p_out("Recv msg %q\n", msg.S)
+	}
+}
+
+// Wait for requests from clients
+func repLoop() {
+
+	for {
+		p_out("In repLoop")
+
+		msg := recv(repSock)
+
+		switch msg.MsgType {
+		case MSG_PUT:
+			put(msg.Key, msg.Value)
+			break
+		case MSG_GET:
+			break
+		case MSG_DELETE:
+			break
+		default:
+			break
+		}
+		p_out("Recv msg %q\n", msg.S)
+	}
 }
 
 // ========================================================================== //
@@ -97,7 +132,19 @@ func get(key string) (Value, error) {
 	s, e := store.Get(key)
 	out()
 
-	if e == nil {
+	if e != nil {
+		return nil, EKEYNF
+	}
+
+	return s, nil
+}
+
+func deleteEntry(key string) (Value, error) {
+	in()
+	s, e := store.Delete(key)
+	out()
+
+	if e != nil {
 		return nil, EKEYNF
 	}
 

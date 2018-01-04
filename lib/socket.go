@@ -63,33 +63,6 @@ func connectToReplicaSubsock(r Replica) {
 	}
 }
 
-// Wait for pubsub data (from other betareduce servers )
-func recvLoop() {
-
-	// TODO: connect to other replicas here
-	p_out("In recvLoop")
-
-	for {
-		msg := recv(subSock)
-		// TODO: lock here
-		p_out("Recv msg %q\n", msg.S)
-		// TODO: unlock here
-	}
-}
-
-// Wait for requests from clients
-func repLoop() {
-
-	for {
-		p_out("In repLoop")
-
-		msg := recv(repSock)
-		// TODO: lock here (on a different lock than recvLoop)
-		p_out("Recv msg %q\n", msg.S)
-		// TODO: unlock here
-	}
-}
-
 // Greg TODO
 func send(sock *zmq.Socket, m *Msg) {
 	fmt.Println("TODO: send msg: " + m.S)
