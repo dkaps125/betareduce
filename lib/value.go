@@ -1,8 +1,8 @@
 package betareduce
 
 type Value interface {
-	serialize() string
-	deserialize(string) Value
+	serialize() []byte
+	deserialize([]byte) Value
 }
 
 // ========================================================================== //
@@ -11,10 +11,10 @@ type String struct {
 	value string
 }
 
-func (s String) serialize() string {
-	return s.value
+func (s String) serialize() []byte {
+	return []byte(s.value)
 }
 
-func (s String) deserialize(value string) Value {
-	return String{value: value}
+func (s String) deserialize(value []byte) Value {
+	return String{value: string(value)}
 }

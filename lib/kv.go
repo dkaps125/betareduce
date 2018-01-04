@@ -60,3 +60,13 @@ func (kv *KVS) Get(key string) (Value, error) {
 
 	return nil, EKEYNF
 }
+
+func (kv *KVS) Delete(key string) (Value, error) {
+	if _, ok := kv.store[key]; ok {
+		v := kv.store[key].value
+		delete(kv.store, key)
+		return v, nil
+	}
+
+	return nil, EKEYNF
+}
