@@ -101,7 +101,7 @@ func recv(sock *zmq.Socket) *Msg {
 }
 
 // Client code blocking send/recv, perhaps move later
-func SendRecv(m *Msg, r *Replica) *Msg {
+func (r *Replica) SendRecv(m *Msg) *Msg {
 	send(r.reqSock, m)
 	return recv(r.reqSock)
 }

@@ -2,7 +2,7 @@
 package main
 
 import (
-	betareduce "betareduce/lib"
+	. "betareduce/lib"
 	"bufio"
 	"fmt"
 	"os"
@@ -40,7 +40,7 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Connecting to tcp://" + address + ":" + string(port))
-	replica := betareduce.ConnectToReplicaReqsock(address, port)
+	replica := ConnectToReplicaReqsock(address, port)
 
 	for {
 		fmt.Print("β> ")
@@ -60,19 +60,19 @@ func main() {
 		if len(op) >= 1 {
 			switch op[0] {
 			case "put":
-				outboundMsg := &betareduce.Msg{
-					MsgType: betareduce.MSG_PUT,
+				outboundMsg := &Msg{
+					MsgType: MSG_PUT,
 					S:       strings.Join(op[1:], " "),
 				}
-				replyMsg := betareduce.SendRecv(outboundMsg, &replica)
+				replyMsg := replica.SendRecv(outboundMsg)
 				fmt.Println(replyMsg)
 				break
 			case "get":
-				outboundMsg := &betareduce.Msg{
-					MsgType: betareduce.MSG_GET,
+				outboundMsg := &Msg{
+					MsgType: MSG_GET,
 					S:       strings.Join(op[1:], " "),
 				}
-				replyMsg := betareduce.SendRecv(outboundMsg, &replica)
+				replyMsg := replica.SendRecv(outboundMsg)
 				fmt.Println(replyMsg)
 				break
 			default:
