@@ -39,7 +39,8 @@ func PUB_PORT(x int) int { return x + 2 }
 type Msg struct {
 	S       string
 	Key     string
-	Value   Value
+	Value   []byte
+	Type    string
 	MsgType int
 	// TODO: put other message info here
 	Status int
@@ -47,9 +48,8 @@ type Msg struct {
 	To     string
 }
 
-// Semaphores
-var semSend chan int
-var semRecv chan int
+var semSend = make(chan (int), 1)
+var semRecv = make(chan (int), 1)
 
 func inSend() {
 	semSend <- 1
@@ -68,7 +68,6 @@ func outRecv() {
 }
 
 func ConnectToReplicaReqsock(address string, port int) Replica {
-
 	r := Replica{
 		address: address,
 		port:    port,
@@ -98,7 +97,7 @@ func send(sock *zmq.Socket, m *Msg) error {
 	inSend()
 	defer outSend()
 
-	m.From = me.pubAddr
+	//m.From = me.pubAddr
 	s, _ := json.Marshal(m)
 	p_out("SEND %q (%q - %q): seq %d, len %d\n", Msgtypes[m.MsgType], m.From, m.To, len(s))
 
@@ -118,7 +117,6 @@ func recv(sock *zmq.Socket) *Msg {
 
 	// do we need to do something with this?
 	flags = 0
-
 	inRecv()
 	defer outRecv()
 
@@ -146,6 +144,8 @@ func recv(sock *zmq.Socket) *Msg {
 
 // Client code blocking send/recv, perhaps move later
 func (r *Replica) SendRecv(m *Msg) *Msg {
+	p_out("Sending")
 	send(r.reqSock, m)
+	p_out("Exit send")
 	return recv(r.reqSock)
 }

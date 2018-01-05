@@ -13,7 +13,7 @@ var (
 	pubSock, subSock, repSock *zmq.Socket
 	me                        *Replica
 
-	debug = false
+	Debug = false
 )
 
 type Replica struct {
@@ -42,7 +42,7 @@ func Init(port int, _debug bool) {
 	store = NewKVS()
 	storeLock = make(chan (int), 1)
 
-	debug = _debug
+	Debug = _debug
 
 	me = &Replica{
 		address: "127.0.0.1",
@@ -84,31 +84,13 @@ func Init(port int, _debug bool) {
 
 	p_out("request bound to %q\n", s)
 
-	go recvLoop()
-	go repLoop()
-}
-
-// ========================================================================== //
-
-// Wait for pubsub data (from other betareduce servers )
-func recvLoop() {
-
-	// TODO: connect to other replicas here
-	p_out("In recvLoop")
+	//go recvLoop()
 
 	for {
-		msg := recv(subSock)
-		p_out("Recv msg %q\n", msg.S)
-	}
-}
-
-// Wait for requests from clients
-func repLoop() {
-
-	for {
-		p_out("In repLoop")
+		p_out("In repLoop\n")
 
 		msg := recv(repSock)
+		p_out("Received message\n")
 
 		var v Value
 		var err error
@@ -116,7 +98,14 @@ func repLoop() {
 
 		switch msg.MsgType {
 		case MSG_PUT:
-			put(msg.Key, msg.Value)
+			put(msg.Key, GetValue(msg.Value, msg.Type))
+			p_out("Put %s, %v\n", msg.Key, msg.Value)
+			m = &Msg{
+				Key:     msg.Key,
+				Value:   msg.Value,
+				MsgType: MSG_PUT_RESPONSE,
+				Status:  0,
+			}
 			break
 		case MSG_GET:
 			v, err = get(msg.Key)
@@ -130,13 +119,11 @@ func repLoop() {
 			} else {
 				m = &Msg{
 					Key:     msg.Key,
-					Value:   v,
+					Value:   v.Serialize(),
 					MsgType: MSG_GET_RESPONSE,
 					Status:  0,
 				}
 			}
-
-			send(repSock, m)
 			break
 		case MSG_DELETE:
 			v, err = deleteEntry(msg.Key)
@@ -150,18 +137,30 @@ func repLoop() {
 			} else {
 				m = &Msg{
 					Key:     msg.Key,
-					Value:   v,
+					Value:   v.Serialize(),
 					MsgType: MSG_GET_RESPONSE,
 					Status:  0,
 				}
 			}
-
-			send(repSock, m)
 			break
 		default:
 			p_out("Received unknown message type")
 			break
 		}
+		send(repSock, m)
+	}
+}
+
+// ========================================================================== //
+
+// Wait for pubsub data (from other betareduce servers )
+func recvLoop() {
+
+	// TODO: connect to other replicas here
+	p_out("In recvLoop")
+
+	for {
+		msg := recv(subSock)
 		p_out("Recv msg %q\n", msg.S)
 	}
 }

@@ -6,7 +6,7 @@ import (
 )
 
 func p_out(s string, args ...interface{}) {
-	if !debug {
+	if !Debug {
 		return
 	}
 	p_err(s, args...)

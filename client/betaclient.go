@@ -23,7 +23,7 @@ func main() {
 	port = 8300
 
 	for {
-		if c = Getopt("a:"); c == EOF {
+		if c = Getopt("da:p:"); c == EOF {
 			break
 		}
 		switch c {
@@ -31,6 +31,8 @@ func main() {
 			address = OptArg
 		case 'p':
 			port, _ = strconv.Atoi(OptArg)
+		case 'd':
+			Debug = true
 		default:
 			println("usage: betareduce.go [-a address]", c)
 			os.Exit(1)
@@ -60,28 +62,34 @@ func main() {
 		if len(op) > 1 {
 			switch op[0] {
 			case "put":
+
 				if len(op) < 3 {
 					break
 				}
 				outboundMsg := &Msg{
 					MsgType: MSG_PUT,
-					Key:     op[1],
-					Value:   String{Value: strings.Join(op[2:], " ")},
+					Key:     op[2],
+					Type:    op[1],
+					Value:   String{Value: strings.Join(op[3:], " ")}.Serialize(),
 				}
+
+				//fmt.Printf("Sending %s, %s\n", outboundMsg.Key, outboundMsg.Value)
+
 				replyMsg := replica.SendRecv(outboundMsg)
-				fmt.Println(replyMsg)
+				fmt.Printf("PUT %s, %v\n", replyMsg.Key, GetValue(replyMsg.Value, op[1]))
 				break
 			case "get":
 				outboundMsg := &Msg{
 					MsgType: MSG_GET,
-					Value:   String{Value: strings.Join(op[1:], " ")},
-					S:       strings.Join(op[1:], " "),
+					Key:     op[1],
 				}
 				replyMsg := replica.SendRecv(outboundMsg)
-				fmt.Println(replyMsg)
+				//TODO: change types so that they are specified in serialization of value
+				fmt.Printf("GET %s, %v\n", replyMsg.Key, GetValue(replyMsg.Value, "String"))
 				break
 			default:
 				fmt.Println("Command not recognized")
+				break
 			}
 		}
 
