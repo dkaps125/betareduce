@@ -1,30 +1,49 @@
 package betareduce
 
 import (
+	"encoding/binary"
 	"fmt"
 	"os"
+	"strconv"
 )
 
-func p_out(s string, args ...interface{}) {
+var Debug bool
+
+func P_out(s string, args ...interface{}) {
 	if !Debug {
 		return
 	}
-	p_err(s, args...)
+	P_err(s, args...)
 }
 
-func p_err(s string, args ...interface{}) {
+func P_err(s string, args ...interface{}) {
 	var pre string
 	fmt.Printf(pre+s, args...)
 }
 
-func p_dieif(b bool, s string, args ...interface{}) {
+func P_dieif(b bool, s string, args ...interface{}) {
 	if b {
-		p_err(s, args...)
+		P_err(s, args...)
 		os.Exit(1)
 	}
 }
 
-func p_die(s string, args ...interface{}) {
-	p_err(s, args...)
+func P_die(s string, args ...interface{}) {
+	P_err(s, args...)
 	os.Exit(1)
+}
+
+func GetValue(contents []byte) string {
+	var ret string
+
+	switch contents[0] {
+	case 's':
+		ret = string(contents[1:])
+	case 'i':
+		ret = strconv.Itoa(int(binary.BigEndian.Uint64(contents[1:])))
+	default:
+		ret = string(contents[1:])
+	}
+
+	return ret
 }

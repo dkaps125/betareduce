@@ -1,6 +1,10 @@
-package betareduce
+package main
 
-import "time"
+import (
+	"time"
+
+	lib "betareduce/lib"
+)
 
 // ========================================================================== //
 
@@ -36,6 +40,7 @@ func NewKVS() KVS {
 }
 
 func (kv *KVS) Put(key string, value Value) {
+	lib.P_out("%v\n", kv.store)
 	t := time.Now()
 
 	if _, ok := kv.store[key]; ok {

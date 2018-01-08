@@ -2,7 +2,9 @@
 package main
 
 import (
-	. "betareduce/lib"
+	lib "betareduce/lib"
+	"encoding/binary"
+
 	"bufio"
 	"fmt"
 	"os"
@@ -32,7 +34,7 @@ func main() {
 		case 'p':
 			port, _ = strconv.Atoi(OptArg)
 		case 'd':
-			Debug = true
+			lib.Debug = true
 		default:
 			println("usage: betareduce.go [-a address]", c)
 			os.Exit(1)
@@ -42,7 +44,7 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Connecting to tcp://" + address + ":" + string(port))
-	replica := ConnectToReplicaReqsock(address, port)
+	replica := lib.ConnectToReplicaReqsock(address, port)
 
 	for {
 		fmt.Print("β> ")
@@ -63,29 +65,28 @@ func main() {
 			switch op[0] {
 			case "put":
 
-				if len(op) < 3 {
+				if len(op) < 4 {
 					break
 				}
-				outboundMsg := &Msg{
-					MsgType: MSG_PUT,
+				outboundMsg := &lib.Msg{
+					MsgType: lib.MSG_PUT,
 					Key:     op[2],
-					Type:    op[1],
-					Value:   String{Value: strings.Join(op[3:], " ")}.Serialize(),
+					Value:   getBytes(op[1], strings.Join(op[3:], " ")),
 				}
 
-				//fmt.Printf("Sending %s, %s\n", outboundMsg.Key, outboundMsg.Value)
+				lib.P_out("Sending %s, %v\n", outboundMsg.Key, outboundMsg.Value)
 
 				replyMsg := replica.SendRecv(outboundMsg)
-				fmt.Printf("PUT %s, %v\n", replyMsg.Key, GetValue(replyMsg.Value, op[1]))
+				fmt.Printf("PUT %s, %v\n", replyMsg.Key, lib.GetValue(replyMsg.Value))
 				break
 			case "get":
-				outboundMsg := &Msg{
-					MsgType: MSG_GET,
+				outboundMsg := &lib.Msg{
+					MsgType: lib.MSG_GET,
 					Key:     op[1],
 				}
 				replyMsg := replica.SendRecv(outboundMsg)
 				//TODO: change types so that they are specified in serialization of value
-				fmt.Printf("GET %s, %v\n", replyMsg.Key, GetValue(replyMsg.Value, "String"))
+				fmt.Printf("GET %s, %v\n", replyMsg.Key, lib.GetValue(replyMsg.Value))
 				break
 			default:
 				fmt.Println("Command not recognized")
@@ -94,6 +95,32 @@ func main() {
 		}
 
 	}
+}
+
+func getBytes(kind string, contents string) []byte {
+	var pref byte
+	var ret []byte
+
+	switch kind {
+	case "String":
+		pref = 's'
+	case "Int":
+		pref = 'i'
+	default:
+		pref = 'b'
+	}
+
+	if pref == 'i' {
+		ret = make([]byte, 9)
+		ret[0] = 'i'
+
+		tmp, _ := strconv.Atoi(contents)
+		binary.BigEndian.PutUint64(ret[1:], uint64(tmp))
+
+		return ret
+	}
+
+	return append([]byte{pref}, []byte(contents)...)
 }
 
 // add functions to send commands to replicas
