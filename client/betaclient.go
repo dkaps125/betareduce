@@ -36,7 +36,7 @@ func main() {
 		case 'd':
 			lib.Debug = true
 		default:
-			println("usage: betareduce.go [-a address]", c)
+			println("usage: betareduce.go [-a address] [-p port] [-d]", c)
 			os.Exit(1)
 		}
 	}
@@ -86,7 +86,11 @@ func main() {
 				}
 				replyMsg := replica.SendRecv(outboundMsg)
 				//TODO: change types so that they are specified in serialization of value
-				fmt.Printf("GET %s, %v\n", replyMsg.Key, lib.GetValue(replyMsg.Value))
+				if replyMsg.Status == 0 {
+					fmt.Printf("GET %s, %v\n", replyMsg.Key, lib.GetValue(replyMsg.Value))
+				} else {
+					fmt.Print(replyMsg.Key + ": KEY NOT FOUND\n")
+				}
 				break
 			default:
 				fmt.Println("Command not recognized")

@@ -21,22 +21,25 @@ const (
 	MSG_GET_RESPONSE
 	MSG_DELETE_RESPONSE
 	MSG_STATUS
+	MSG_SUBSCRIBE
+	MSG_SUBSCRIBE_RESPONSE
 )
 
 var Msgtypes = map[int]string{
-	MSG_CONNECT:         "MSG_CONNECT",
-	MSG_PUT:             "MSG_PUT",
-	MSG_PUT_RESPONSE:    "MSG_PUT_RESPONSE",
-	MSG_GET:             "MSG_GET",
-	MSG_GET_RESPONSE:    "MSG_GET_RESPONSE",
-	MSG_DELETE:          "MSG_DELETE",
-	MSG_DELETE_RESPONSE: "MSG_DELETE_RESPONSE",
-	MSG_STATUS:          "MSG_STATUS",
+	MSG_CONNECT:            "MSG_CONNECT",
+	MSG_PUT:                "MSG_PUT",
+	MSG_PUT_RESPONSE:       "MSG_PUT_RESPONSE",
+	MSG_GET:                "MSG_GET",
+	MSG_GET_RESPONSE:       "MSG_GET_RESPONSE",
+	MSG_DELETE:             "MSG_DELETE",
+	MSG_DELETE_RESPONSE:    "MSG_DELETE_RESPONSE",
+	MSG_STATUS:             "MSG_STATUS",
+	MSG_SUBSCRIBE:          "MSG_SUBSCRIBE",
+	MSG_SUBSCRIBE_RESPONSE: "MSG_SUBSCRIBE_RESPONSE",
 }
 
-func REQ_PORT(x int) int { return x }
-func SUB_PORT(x int) int { return x + 1 }
-func PUB_PORT(x int) int { return x + 2 }
+func CLIENT_PORT(x int) int { return x }
+func REP_PORT(x int) int    { return x + 1 }
 
 type Msg struct {
 	S       string
@@ -129,11 +132,12 @@ func ConnectToReplicaReqsock(address string, port int) Replica {
 		port:    port,
 	}
 
-	s := fmt.Sprintf("tcp://%s:%d", r.address, REQ_PORT(r.port))
+	s := fmt.Sprintf("tcp://%s:%d", r.address, CLIENT_PORT(r.port))
 	P_out("connect to " + s)
 	r.reqSock, _ = zmq.NewSocket(zmq.REQ)
 	if err := r.reqSock.Connect(s); err != nil {
 		P_err("Error: cannot connect to server %q, %v\n", s, err)
+		panic(err)
 	}
 
 	return r

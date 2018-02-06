@@ -2,6 +2,8 @@ package main
 
 import (
 	lib "betareduce/lib"
+	"strconv"
+	"strings"
 )
 
 var (
@@ -23,7 +25,7 @@ func out() {
 // ========================================================================== //
 
 // Init initializes a key-value store and binds to a port
-func Run(port int) {
+func Run(port int, bootstrapAddress string) {
 	store = NewKVS()
 	storeLock = make(chan (int), 1)
 
@@ -32,7 +34,15 @@ func Run(port int) {
 	// bind pub/sub
 	me.InitReplica()
 
-	//go recvLoop()
+	if bootstrapAddress != "" {
+		toks := strings.Split(bootstrapAddress, ":")
+		address := toks[0]
+		port, _ := strconv.Atoi(toks[1])
+
+		me.BootstrapFromReplica(address, port)
+	}
+
+	go recvLoop()
 
 	for {
 		lib.P_out("In repLoop\n")
@@ -43,6 +53,8 @@ func Run(port int) {
 		var v Value
 		var err error
 		var m *lib.Msg
+
+		err = nil
 
 		switch msg.MsgType {
 		case lib.MSG_PUT:
@@ -92,36 +104,29 @@ func Run(port int) {
 			}
 			break
 		default:
-			lib.P_out("Received unknown message type")
+			lib.P_out("Received unknown message type\n")
+			err = EKEYNF
 			break
 		}
 
-		me.SendClient(m)
+		if err == nil {
+			me.SendClient(m)
+		}
 	}
 }
 
 // ========================================================================== //
 
-// func connectToReplicaSubsock(r lib.Replica) {
-// 	// add some logic for making sure replica is there, listening
-//
-// 	s := fmt.Sprintf("tcp://%s:%d", r.address, lib.SUB_PORT(r.port))
-// 	lib.P_out("connect to " + s)
-// 	if err := subSock.Connect(s); err != nil {
-// 		p_err("Error: cannot connect to server %q, %v\n", s, err)
-// 	}
-// }
-
 // Wait for pubsub data (from other betareduce servers )
 func recvLoop() {
 
 	// TODO: connect to other replicas here
-	// lib.P_out("In recvLoop")
-	//
-	// for {
-	// 	msg := recv(subSock)
-	// 	lib.P_out("Recv msg %q\n", msg.S)
-	// }
+	lib.P_out("In recvLoop")
+
+	for {
+		msg := me.RecvRep()
+		lib.P_out("Recv msg %q\n", msg.S)
+	}
 }
 
 // ========================================================================== //

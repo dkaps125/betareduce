@@ -36,7 +36,7 @@ func (r *Replica) InitReplica() {
 		P_out("skt create err %v\n", err)
 	}
 
-	s := fmt.Sprintf("tcp://*:%d", PUB_PORT(r.port))
+	s := fmt.Sprintf("tcp://*:%d", REP_PORT(r.port))
 	err = r.pubSock.Bind(s)
 
 	if err != nil {
@@ -53,7 +53,7 @@ func (r *Replica) InitReplica() {
 	// bind req/rep
 	r.repSock, err = zmq.NewSocket(zmq.REP)
 
-	s = fmt.Sprintf("tcp://*:%d", REQ_PORT(r.port))
+	s = fmt.Sprintf("tcp://*:%d", CLIENT_PORT(r.port))
 	if err := r.repSock.Bind(s); err != nil {
 		P_die("Error binding req/rep socket %q (%v)\n", s, err)
 	}
@@ -75,4 +75,35 @@ func (r *Replica) RecvClient() *Msg {
 
 func (r *Replica) SendClient(m *Msg) {
 	send(r.repSock, m)
+}
+
+func (r *Replica) RecvRep() *Msg {
+	return recv(r.subSock)
+}
+
+func (r *Replica) SendRep(m *Msg) {
+	send(r.reqSock, m)
+}
+
+func (r *Replica) BootstrapFromReplica(address string, port int) {
+	s := fmt.Sprintf("tcp://%s:%d", address, CLIENT_PORT(port))
+	P_out("connect to " + s)
+	r.reqSock, _ = zmq.NewSocket(zmq.REQ)
+	if err := r.reqSock.Connect(s); err != nil {
+		P_err("Error: cannot connect to server %q, %v\n", s, err)
+		panic(err)
+	}
+
+	m := &Msg{
+		MsgType: MSG_SUBSCRIBE,
+	}
+
+	r.SendRep(m)
+	// add some logic for making sure replica is there, listening
+
+	s = fmt.Sprintf("tcp://%s:%d", address, REP_PORT(port))
+	P_out("connect to " + s)
+	if err := r.subSock.Connect(s); err != nil {
+		P_err("Error: cannot connect to server %q, %v\n", s, err)
+	}
 }
