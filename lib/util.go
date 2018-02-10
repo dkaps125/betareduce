@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 var Debug bool
@@ -46,4 +47,70 @@ func GetValue(contents []byte) string {
 	}
 
 	return ret
+}
+
+func GetAddrComponents(address string) (string, int) {
+	P_out("Getting comps for %s\n", address)
+	toks := strings.Split(address, ":")
+	addr := toks[0]
+	port, _ := strconv.Atoi(toks[1])
+
+	return addr, port
+}
+
+var semBootSend = make(chan (int), 1)
+var semBootRecv = make(chan (int), 1)
+
+func inBootSend() {
+	semBootSend <- 1
+}
+
+func outBootSend() {
+	<-semBootSend
+}
+
+func inBootRecv() {
+	semBootRecv <- 1
+}
+
+func outBootRecv() {
+	<-semBootRecv
+}
+
+var semClientSend = make(chan (int), 1)
+var semClientRecv = make(chan (int), 1)
+
+func inClientSend() {
+	semClientSend <- 1
+}
+
+func outClientSend() {
+	<-semClientSend
+}
+
+func inClientRecv() {
+	semClientRecv <- 1
+}
+
+func outClientRecv() {
+	<-semClientRecv
+}
+
+var semRepSend = make(chan (int), 1)
+var semRepRecv = make(chan (int), 1)
+
+func inRepSend() {
+	semRepSend <- 1
+}
+
+func outRepSend() {
+	<-semRepSend
+}
+
+func inRepRecv() {
+	semRepRecv <- 1
+}
+
+func outRepRecv() {
+	<-semRepRecv
 }

@@ -23,6 +23,7 @@ const (
 	MSG_STATUS
 	MSG_SUBSCRIBE
 	MSG_SUBSCRIBE_RESPONSE
+	MSG_SUBSCRIBE_FLOOD
 )
 
 var Msgtypes = map[int]string{
@@ -36,10 +37,12 @@ var Msgtypes = map[int]string{
 	MSG_STATUS:             "MSG_STATUS",
 	MSG_SUBSCRIBE:          "MSG_SUBSCRIBE",
 	MSG_SUBSCRIBE_RESPONSE: "MSG_SUBSCRIBE_RESPONSE",
+	MSG_SUBSCRIBE_FLOOD:    "MSG_SUBSCRIBE_FLOOD",
 }
 
 func CLIENT_PORT(x int) int { return x }
 func REP_PORT(x int) int    { return x + 1 }
+func BOOT_PORT(x int) int   { return x + 2 }
 
 type Msg struct {
 	S       string
@@ -51,35 +54,12 @@ type Msg struct {
 	Status int
 	From   string
 	To     string
-}
-
-// ========================================================================== //
-
-var semSend = make(chan (int), 1)
-var semRecv = make(chan (int), 1)
-
-func inSend() {
-	semSend <- 1
-}
-
-func outSend() {
-	<-semSend
-}
-
-func inRecv() {
-	semRecv <- 1
-}
-
-func outRecv() {
-	<-semRecv
+	Subs   []Replica
 }
 
 // ========================================================================== //
 
 func send(sock *zmq.Socket, m *Msg) error {
-	inSend()
-	defer outSend()
-
 	//m.From = me.pubAddr
 	s, _ := json.Marshal(m)
 	P_out("SEND %q (%q - %q): seq %d, len %d\n", Msgtypes[m.MsgType], m.From, m.To, len(s))
@@ -100,8 +80,6 @@ func recv(sock *zmq.Socket) *Msg {
 
 	// do we need to do something with this?
 	flags = 0
-	inRecv()
-	defer outRecv()
 
 	m := new(Msg)
 	for {

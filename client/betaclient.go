@@ -76,7 +76,7 @@ func main() {
 
 				lib.P_out("Sending %s, %v\n", outboundMsg.Key, outboundMsg.Value)
 
-				replyMsg := replica.SendRecv(outboundMsg)
+				replyMsg := replica.SendRecvToReplica(outboundMsg)
 				fmt.Printf("PUT %s, %v\n", replyMsg.Key, lib.GetValue(replyMsg.Value))
 				break
 			case "get":
@@ -84,7 +84,7 @@ func main() {
 					MsgType: lib.MSG_GET,
 					Key:     op[1],
 				}
-				replyMsg := replica.SendRecv(outboundMsg)
+				replyMsg := replica.SendRecvToReplica(outboundMsg)
 				//TODO: change types so that they are specified in serialization of value
 				if replyMsg.Status == 0 {
 					fmt.Printf("GET %s, %v\n", replyMsg.Key, lib.GetValue(replyMsg.Value))

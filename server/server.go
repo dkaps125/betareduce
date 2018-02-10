@@ -2,8 +2,6 @@ package main
 
 import (
 	lib "betareduce/lib"
-	"strconv"
-	"strings"
 )
 
 var (
@@ -33,99 +31,119 @@ func Run(port int, bootstrapAddress string) {
 
 	// bind pub/sub
 	me.InitReplica()
+	me.BootstrapFromReplica(bootstrapAddress)
 
-	if bootstrapAddress != "" {
-		toks := strings.Split(bootstrapAddress, ":")
-		address := toks[0]
-		port, _ := strconv.Atoi(toks[1])
-
-		me.BootstrapFromReplica(address, port)
-	}
-
-	go recvLoop()
+	go repLoop()
+	go bootLoop()
 
 	for {
-		lib.P_out("In repLoop\n")
+		lib.P_out("In clientLoop\n")
 
 		msg := me.RecvClient()
 		lib.P_out("Received message\n")
 
-		var v Value
-		var err error
-		var m *lib.Msg
-
-		err = nil
-
-		switch msg.MsgType {
-		case lib.MSG_PUT:
-			put(msg.Key, GetValue(msg.Value))
-			lib.P_out("Put %s, %v\n", msg.Key, msg.Value)
-			m = &lib.Msg{
-				Key:     msg.Key,
-				Value:   msg.Value,
-				MsgType: lib.MSG_PUT_RESPONSE,
-				Status:  0,
-			}
-			break
-		case lib.MSG_GET:
-			v, err = get(msg.Key)
-
-			if err != nil {
-				m = &lib.Msg{
-					Key:     msg.Key,
-					MsgType: lib.MSG_GET_RESPONSE,
-					Status:  -1,
-				}
-			} else {
-				m = &lib.Msg{
-					Key:     msg.Key,
-					Value:   v.Serialize(),
-					MsgType: lib.MSG_GET_RESPONSE,
-					Status:  0,
-				}
-			}
-			break
-		case lib.MSG_DELETE:
-			v, err = deleteEntry(msg.Key)
-
-			if err != nil {
-				m = &lib.Msg{
-					Key:     msg.Key,
-					MsgType: lib.MSG_GET_RESPONSE,
-					Status:  -1,
-				}
-			} else {
-				m = &lib.Msg{
-					Key:     msg.Key,
-					Value:   v.Serialize(),
-					MsgType: lib.MSG_GET_RESPONSE,
-					Status:  0,
-				}
-			}
-			break
-		default:
-			lib.P_out("Received unknown message type\n")
-			err = EKEYNF
-			break
-		}
-
-		if err == nil {
-			me.SendClient(m)
-		}
+		processMessage(msg, true)
 	}
 }
 
 // ========================================================================== //
 
 // Wait for pubsub data (from other betareduce servers )
-func recvLoop() {
+func repLoop() {
 
 	// TODO: connect to other replicas here
-	lib.P_out("In recvLoop")
 
 	for {
+		lib.P_out("In repLoop")
 		msg := me.RecvRep()
+		lib.P_out("Recv msg %v\n", msg)
+		processMessage(msg, false)
+	}
+}
+
+func bootLoop() {
+
+	// TODO: connect to other replicas here
+	lib.P_out("In bootLoop")
+
+	for {
+		msg := me.RecvBoot()
 		lib.P_out("Recv msg %q\n", msg.S)
+
+		me.HandleBootstrap(msg)
+	}
+}
+
+func processMessage(msg *lib.Msg, forward bool) {
+	var v Value
+	var err error
+	var m *lib.Msg
+
+	err = nil
+
+	switch msg.MsgType {
+	case lib.MSG_PUT:
+		put(msg.Key, GetValue(msg.Value))
+		m = &lib.Msg{
+			Key:     msg.Key,
+			Value:   msg.Value,
+			MsgType: lib.MSG_PUT_RESPONSE,
+			Status:  0,
+		}
+
+		if forward {
+			me.SendRep(msg)
+		}
+
+		break
+	case lib.MSG_GET:
+		v, err = get(msg.Key)
+
+		if err != nil {
+			m = &lib.Msg{
+				Key:     msg.Key,
+				MsgType: lib.MSG_GET_RESPONSE,
+				Status:  -1,
+			}
+		} else {
+			m = &lib.Msg{
+				Key:     msg.Key,
+				Value:   v.Serialize(),
+				MsgType: lib.MSG_GET_RESPONSE,
+				Status:  0,
+			}
+		}
+		break
+	case lib.MSG_DELETE:
+		v, err = deleteEntry(msg.Key)
+
+		if err != nil {
+			m = &lib.Msg{
+				Key:     msg.Key,
+				MsgType: lib.MSG_GET_RESPONSE,
+				Status:  -1,
+			}
+		} else {
+			m = &lib.Msg{
+				Key:     msg.Key,
+				Value:   v.Serialize(),
+				MsgType: lib.MSG_GET_RESPONSE,
+				Status:  0,
+			}
+
+			if forward {
+				me.SendRep(msg)
+			}
+		}
+		break
+	default:
+		lib.P_out("Received unknown message type\n")
+		err = EKEYNF
+		break
+	}
+
+	if err == nil && forward {
+		me.SendClient(m)
 	}
 }
 
